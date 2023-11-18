@@ -1,0 +1,65 @@
+install.packages("eurostat")
+
+library(eurostat)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+fer <- search_eurostat("fertility")
+
+# Data from Eurostat
+get_eurostat("demo_r_frate3", time_format = "raw", stringsAsFactors = FALSE)  %>%
+  # we need a country var for reproducing the Eurostat map
+  # # categorise
+  dplyr::mutate(cat = cut_to_classes(values, n=7, decimals = 1)) %>%
+  # merge with geodata
+  merge_eurostat_geodata(data=.,geocolumn="geo",resolution = "20", output_class = "df", all_regions = FALSE) %>% 
+  # plot map
+  ggplot(data=., aes(x=long,y=lat,group=group)) +
+  geom_polygon(aes(fill=cat),color="dim grey", size=.1) +
+  scale_fill_manual(values = c("#d73027","#fc8d59","#fee08b","#ffffbf","#d9ef8b","#91cf60","#1a9850")) +
+  # scale_fill_continuous(trans = 'reverse', ) +
+  guides(fill = guide_legend(reverse=T, title = "Total fertility rate (%)")) +
+  labs(title="Total fertility rate, by NUTS-3 regions, 2014",
+       subtitle="Average number of live births per woman",
+       caption="(C) EuroGeographics for the administrative boundaries 
+                Map produced in R with a help from Eurostat-package by Ahmed Cherif") +
+  theme_light() + theme(legend.position=c(.8,.8), text=element_text(family="opensans")) +
+  coord_map(project="orthographic", xlim=c(-12,44), ylim=c(35,70))
+
+
+
+
+
+
+library(eurostat)
+library(dplyr)
+library(ggplot2)
+library(stringr)
+unemp <- search_eurostat("unemployment")
+
+# Data from Eurostat
+get_eurostat("lfst_r_lfe2emprt", time_format = "raw", stringsAsFactors = FALSE)  %>%
+  filter(age %in% "Y20-64",
+         sex %in% "T",
+         nchar(geo) == 4,
+         time == 2015) %>% 
+  # we need a country var for reproducing the Eurostat map
+  # # categorise
+  dplyr::mutate(cat = cut_to_classes(values, n=7, decimals = 1)) %>%
+  # merge with geodata
+  merge_eurostat_geodata(data=.,geocolumn="geo",resolution = "20", output_class = "df", all_regions = FALSE) %>% 
+  # plot map
+  ggplot(data=., aes(x=long,y=lat,group=group)) +
+  geom_polygon(aes(fill=cat),color="dim grey", size=.1) +
+  scale_fill_manual(values = c("#d73027","#fc8d59","#fee08b","#ffffbf","#d9ef8b","#91cf60","#1a9850")) +
+  # scale_fill_continuous(trans = 'reverse', ) +
+  guides(fill = guide_legend(reverse=T, title = "Employment rate (%)")) +
+  labs(title="Employment rate, persons aged 20-64, by NUTS 2 regions, 2015",
+       subtitle="%",
+       caption="(C) EuroGeographics for the administrative boundaries 
+                Map produced in R with a help from Eurostat-package by Ahmed Cherif ") +
+  theme_light() + theme(legend.position=c(.8,.8), text=element_text(family="opensans")) +
+  coord_map(project="orthographic", xlim=c(-12,44), ylim=c(35,70))
+
+
+
